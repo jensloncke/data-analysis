@@ -9,14 +9,14 @@ os.makedirs(path_response, exist_ok=True)
 
 def analysedata(filename, path_analysis, path_response):
     data = pd.read_csv(path_analysis / filename, sep=";", skiprows=[0])
-    data = data.dropna(axis='columns')
+    data = data.dropna(axis='columns', how="all")
     data["time"] = data["A1T"]
     remove_columns = [column for column in data.columns if ("T" in column)]
     data.drop(remove_columns, axis=1, inplace=True)
     print(remove_columns)
     print(data.head())
     tijd = data["time"].values  # numpy array met enkel de waardes =/= pandas series
-    selectedcolumns = [column for column in data.columns if ("time") not in column]
+    selectedcolumns = [column for column in data.columns if "time" not in column]
     result_dataframe = pd.DataFrame(columns=selectedcolumns, index=["response"])
 
     for column_name in selectedcolumns:
@@ -24,11 +24,11 @@ def analysedata(filename, path_analysis, path_response):
         minimum = selectedcolumn.min()
         maximum = selectedcolumn.max()
         span = maximum - minimum
-        cutoff = minimum + 0.1 * span
+        cutoff = minimum + 0.05 * span
         mask = (selectedcolumn >= minimum) & (selectedcolumn < cutoff)
         mediaan = np.median(selectedcolumn[mask])  # neemt alle waardes uit selectedcolumn waarvoor True in mask
 
-        peakmask = (tijd >= 100)
+        peakmask = (tijd >= 100) & (tijd < 300)
         peak_index = np.argmax(selectedcolumn[peakmask])  # index van max van een array
         peak = selectedcolumn[peakmask].iloc[peak_index]
         response = peak - mediaan
@@ -41,21 +41,18 @@ def analysedata(filename, path_analysis, path_response):
 
     savenameresponse = filename[:-4] + "_response.csv"
     result_dataframe.to_csv(path_response / savenameresponse, sep=";")
-    print(result_dataframe)
 
     filelist = [filename for filename in os.listdir(path_analysis) if filename[-4:] == ".csv" and os.path.isfile(
         path_analysis / filename)]
     print(filelist)
 
 if __name__ == "__main__":
+    filename = "20200928-Trex290CISD2-Caff-Ionomycin-1.csv"
+    # filelist = [filename for filename in os.listdir(path_analysis) if filename[-4:] == ".csv" and os.path.isfile(
+    #     path_analysis / filename)]
+    # print(filelist)
 
-    filelist = [filename for filename in os.listdir(path_analysis) if filename[-4:] == ".csv" and os.path.isfile(
-        path_analysis / filename)]
-    print(filelist)
-
-    for filename in filelist:
-        analysedata(filename, path_analysis, path_response)
-        break
+    analysedata(filename, path_analysis, path_response)
 
     # peak_time = tijd[peakmask][peak_index]
     # peakwidth = 50

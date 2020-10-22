@@ -1,4 +1,5 @@
 import yaml
+import os
 from pathlib import Path
 
 
@@ -8,8 +9,9 @@ def parse_config(fname):
 
     if "paths" in config:
         for key, value in config["paths"].items():
-            config["paths"][key] = Path(value)
-
+            newpath = Path(value)
+            config["paths"][key] = newpath
+            os.makedirs(newpath, exist_ok=True)
     return config
 
 

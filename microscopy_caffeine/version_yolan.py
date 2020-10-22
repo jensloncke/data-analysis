@@ -2,8 +2,10 @@ import pandas as pd
 import numpy as np
 import os
 
-from configuration.config import CONFIG
-os.makedirs(CONFIG["paths"]["response"], exist_ok=True)
+import yaml
+
+from microscopy_caffeine.configuration.config import CONFIG
+
 
 def calculate_baseline_and_cutoff(values: pd.Series):
     minimum = values.min()
@@ -78,3 +80,5 @@ if __name__ == "__main__":
     result = analyse_data(data_to_analyze)
     save_name_response = CONFIG["filename"][:-4] + "_response.csv"
     result.to_csv(path_response / save_name_response, sep=";")
+    with open(path_response / "config-parameters.yml", 'w') as file:  #with zorgt er voor dat file.close niet meer nodig is na with block
+        yaml.dump(CONFIG["constants"], file)
