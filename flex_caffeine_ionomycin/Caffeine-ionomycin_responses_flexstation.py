@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+import plotly
 from pathlib import Path
 
 path_analysis = Path("C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20200928-Trex293CISD2-Caff-Ionomycin\\20200928-Trex293CISD2-Caff-Ionomycin-1")
