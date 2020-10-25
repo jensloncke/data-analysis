@@ -1,11 +1,28 @@
 import pandas as pd
 import numpy as np
 import os
-from pathlib import Path
 
-path_analysis = Path("C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20200928-Trex293CISD2-Caff-Ionomycin\\20200928-Trex293CISD2-Caff-Ionomycin-1")
-path_response = Path("C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20200928-Trex293CISD2-Caff-Ionomycin\\20200928-Trex293CISD2-Caff-Ionomycin-1\\Response")
-os.makedirs(path_response, exist_ok=True)
+import yaml
+
+from microscopy_caffeine.configuration.config import CONFIG
+
+def calculate_baseline_and_cutoff(values: pd.Series):
+    minimum = values.min()
+    maximum = values.max()
+    span = maximum - minimum
+    cutoff = minimum + span * CONFIG["constants"]["cut_off_percentage"]
+    mask = (values >= minimum) & (values < cutoff)
+    baseline = np.median(values[mask])
+    return baseline, cutoff
+
+def determine_peak_start_and_end_indices(values, cutoff, timestamps, peak_time, analysis_mask):
+    peak_width = CONFIG["constants"]["max_peak_width"]
+    window_mask = (timestamps > peak_time - peak_width) & (timestamps < peak_time + peak_width) & analysis_mask
+    above_cutoff = values > cutoff
+    above_cutoff[~window_mask] = False
+    peak_start = np.argmax(above_cutoff)
+    peak_end = len(above_cutoff) - np.argmax(above_cutoff[::-1])
+    return peak_start - CONFIG["constants"]["peak_index_delta"], peak_end + CONFIG["constants"]["peak_index_delta"] + 1
 
 def analysedata(filename, path_analysis, path_response):
     data = pd.read_csv(path_analysis / filename, sep=";", skiprows=[0])
@@ -47,25 +64,20 @@ def analysedata(filename, path_analysis, path_response):
     print(filelist)
 
 if __name__ == "__main__":
-    filename = "20200928-Trex290CISD2-Caff-Ionomycin-1.csv"
-    # filelist = [filename for filename in os.listdir(path_analysis) if filename[-4:] == ".csv" and os.path.isfile(
-    #     path_analysis / filename)]
-    # print(filelist)
+    import os
 
-    analysedata(filename, path_analysis, path_response)
+    path_analysis = CONFIG["paths"]["data"]
+    path_response = CONFIG["paths"]["response"]
 
-    # peak_time = tijd[peakmask][peak_index]
-    # peakwidth = 50
-    # windowmask = (tijd > peak_time - peakwidth) & (tijd < peak_time + peakwidth) & peakmask
-    # above_cutoff = selectedcolumn > cutoff
-    # above_cutoff[~windowmask] = False  # overal waar windowmask false was --> false in above_cutoff
-    # peak_start = np.argmax(above_cutoff) - 2
-    # peak_end = len(above_cutoff) - np.argmax(above_cutoff[::-1]) + 3
-    #
-    # shifted_values = selectedcolumn - mediaan
-    # shifted_values = shifted_values.where(shifted_values > 0, 0)
-    # area = np.trapz(x=tijd[peak_start:peak_end], y=shifted_values.iloc[peak_start:peak_end])
-    # result_dataframe.loc["auc", column_name] = area
+    file_list = [filename for filename in os.listdir(path_analysis)
+                 if filename[-4:] == ".csv" and os.path.isfile(path_analysis / filename)]
+    print(file_list)
 
+# put this block BEHIND hashtags if you want to decide baseline for every seperate file
+#     for filename in file_list:
+#         data_to_analyze = pd.read_csv(path_analysis / filename, sep=";")
+#         result = analyse_data(data_to_analyze)
+#         save_name_response = filename[:-4] + "_response.csv"
+#         result.to_csv(path_response / save_name_response, sep=";")
 
 
