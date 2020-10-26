@@ -79,11 +79,12 @@ if __name__ == "__main__":
                  if filename[-4:] == ".csv" and os.path.isfile(path_analysis / filename)]
     print(file_list)
 
-# put this block BEHIND hashtags if you want to decide baseline for every seperate file
     for filename in file_list:
         data_to_analyze = pd.read_csv(path_analysis / filename, sep=";")
         result = analyse_data(data_to_analyze)
         save_name_response = filename[:-4] + "_response.csv"
         result.to_csv(path_response / save_name_response, sep=";")
-
+        with open(path_response / "config-parameters.yml",
+                  'w') as file:  # with zorgt er voor dat file.close niet meer nodig is na with block
+            yaml.dump(CONFIG["constants"], file)
 
