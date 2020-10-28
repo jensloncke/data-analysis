@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
-import os
 
 import yaml
 
 from flex_caffeine_ionomycin.configuration.config import CONFIG
+
 
 def calculate_baseline_and_cutoff(values: pd.Series):
     minimum = values.min()
@@ -15,53 +15,52 @@ def calculate_baseline_and_cutoff(values: pd.Series):
     baseline = np.median(values[mask])
     return baseline, cutoff
 
-def determine_peak_start_and_end_indices(values, peak_mask):
-    peak_window = values[peak_mask]
-    peak_start = np.argmax(peak_window)
-    peak_end = len(peak_window) - np.argmax(peak_window[::-1])
-    return peak_start, peak_end
+
+def return_time_index(timestamp, time_list):
+    time_mask = (time_list >= timestamp)
+    time_index = np.argmax(time_mask)
+    return time_index
 
 
-def determine_ionomycin_start_and_end_indices(values, iono_mask):
-    iono_window = values[iono_mask]
-    iono_start = np.argmax(iono_window)
-    iono_end = len(peak_window) - np.argmax(peak_iono[::-1])
-    return iono_start, iono_end
+def calculate_response(baseline, column_values, time_values, start_time, end_time):
+    peak_mask = (time_values >= start_time) & (time_values <= end_time)
+    peak_value = np.max(column_values[peak_mask])
+    return peak_value - baseline
+
+
+def calculate_auc(shifted_values, start_time, end_time, time_values):
+    begin_auc = return_time_index(start_time, time_values)
+    end_auc = return_time_index(end_time, time_values)
+    return np.trapz(x=time_values[begin_auc: end_auc], y=shifted_values.iloc[begin_auc: end_auc])
 
 
 def analyse_column(column_to_analyse: pd.Series, tijd: np.ndarray):
     baseline, cut_off_value = calculate_baseline_and_cutoff(column_to_analyse)
 
-    peak_mask = (tijd >= CONFIG["constants"]["response_start_time"]) & (tijd <= CONFIG["constants"]["response_end_time"])
-    peak_index = np.argmax(column_to_analyse[peak_mask])
-    peak_value = column_to_analyse[peak_mask].iloc[peak_index]
-    raw_response = peak_value - baseline
-    iono_mask = (tijd >= CONFIG["constants"]["ionomycin_start_time"]) & (tijd <= CONFIG["constants"]["ionomycin_end_time"])
-    iono_index = np.argmax(column_to_analyse[iono_mask])
-    iono_value = column_to_analyse[iono_mask].iloc[iono_index]
-    iono_response = iono_value - baseline
+    raw_response = calculate_response(baseline, column_to_analyse, tijd, CONFIG["constants"]["response_start_time"],
+                                      CONFIG["constants"]["response_end_time"])
+    iono_response = calculate_response(baseline, column_to_analyse, tijd, CONFIG["constants"]["ionomycin_start_time"],
+                                       CONFIG["constants"]["ionomycin_end_time"])
     response = raw_response / iono_response
-    peak_start, peak_end = determine_peak_start_and_end_indices(column_to_analyse, peak_mask)
-    iono_start, iono_end = determine_ionomycin_start_and_end_indices(column_to_analyse, iono_mask)
+
     shifted_values = column_to_analyse - baseline
     shifted_values = shifted_values.where(shifted_values > 0, 0)
-    raw_auc = np.trapz(x=tijd[peak_start: peak_end], y=shifted_values.iloc[peak_start_idx: peak_end_idx])
-    iono_auc = np.trapz(x=tijd[iono_start: iono_end], y=shifted_values.iloc[iono_start_idx: iono_end_idx])
+    raw_auc = calculate_auc(shifted_values, CONFIG["constants"]["response_start_time"],
+                            CONFIG["constants"]["response_end_time"], tijd)
+    iono_auc = calculate_auc(shifted_values, CONFIG["constants"]["ionomycin_start_time"],
+                             CONFIG["constants"]["ionomycin_end_time"], tijd)
     auc = raw_auc / iono_auc
     return response, auc
 
 
 def analyse_data(df: pd.DataFrame):
     df = df.dropna(axis='columns', how="all")
-    df["time"] = df["A1T"]
+    tijd = df["A1T"].values
     remove_columns = [column for column in df.columns if ("T" in column)]
-    df.drop(remove_columns, axis=1, inplace=True)
-    tijd = df["time"].values
-    selected_columns = [column for column in df.columns if "time" not in column]
-    df_to_analyse = df[selected_columns]
-    df_result = pd.DataFrame(columns=selected_columns, index=["response", "auc"])
+    df = df.drop(remove_columns, axis=1)
+    df_result = pd.DataFrame(columns=df.columns, index=["response", "auc"])
 
-    for column_name, column in df_to_analyse.iteritems():
+    for column_name, column in df.iteritems():
         response, auc = analyse_column(column, tijd)
         df_result.loc["response", column_name] = response
         df_result.loc["auc", column_name] = auc
@@ -87,4 +86,3 @@ if __name__ == "__main__":
         with open(path_response / "config-parameters.yml",
                   'w') as file:  # with zorgt er voor dat file.close niet meer nodig is na with block
             yaml.dump(CONFIG["constants"], file)
-

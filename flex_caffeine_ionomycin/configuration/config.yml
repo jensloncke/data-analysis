@@ -8,4 +8,3 @@ constants:
   ionomycin_start_time: 200
   ionomycin_end_time: 270
   cut_off_percentage: 0.05
-filename: "KO7_extracted_ratio.csv"
