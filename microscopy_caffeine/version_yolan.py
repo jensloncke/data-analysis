@@ -1,10 +1,8 @@
-import pandas as pd
 import numpy as np
-import os
-
+import pandas as pd
 import yaml
 
-from microscopy_caffeine.configuration.config import CONFIG
+from microscopy_caffeine.configuration.config import CONFIG  #. = submap (submodule)
 
 
 def calculate_baseline_and_cutoff(values: pd.Series):
@@ -23,8 +21,8 @@ def determine_peak_start_and_end_indices(values, cutoff, timestamps, peak_time, 
     above_cutoff = values > cutoff
     above_cutoff[~window_mask] = False
     peak_start = np.argmax(above_cutoff)
-    peak_end = len(above_cutoff) - np.argmax(above_cutoff[::-1])
-    return peak_start - CONFIG["constants"]["peak_index_delta"], peak_end + CONFIG["constants"]["peak_index_delta"] + 1
+    peak_end = len(values) - np.argmax(above_cutoff[::-1])
+    return peak_start - CONFIG["constants"]["peak_index_delta"], peak_end + CONFIG["constants"]["peak_index_delta"]
 
 
 def analyse_column(column_to_analyse: pd.Series, timestamps: np.ndarray):
@@ -69,16 +67,16 @@ if __name__ == "__main__":
     print(file_list)
 
 # put this block BEHIND hashtags if you want to decide baseline for every seperate file
-#     for filename in file_list:
-#         data_to_analyze = pd.read_csv(path_analysis / filename, sep=";")
-#         result = analyse_data(data_to_analyze)
-#         save_name_response = filename[:-4] + "_response.csv"
-#         result.to_csv(path_response / save_name_response, sep=";")
+    for filename in file_list:
+        data_to_analyze = pd.read_csv(path_analysis / filename, sep=";")
+        result = analyse_data(data_to_analyze)
+        save_name_response = filename[:-4] + "_response.csv"
+        result.to_csv(path_response / save_name_response, sep=";")
 
 # DELETE hashtags in front of this block if you want to decide baseline for every seperate file
-    data_to_analyze = pd.read_csv(path_analysis / CONFIG["filename"], sep=";")
-    result = analyse_data(data_to_analyze)
-    save_name_response = CONFIG["filename"][:-4] + "_response.csv"
-    result.to_csv(path_response / save_name_response, sep=";")
-    with open(path_response / "config-parameters.yml", 'w') as file:  #with zorgt er voor dat file.close niet meer nodig is na with block
-        yaml.dump(CONFIG["constants"], file)
+#     data_to_analyze = pd.read_csv(path_analysis / CONFIG["filename"], sep=";")
+#     result = analyse_data(data_to_analyze)
+#     save_name_response = CONFIG["filename"][:-4] + "_response.csv"
+#     result.to_csv(path_response / save_name_response, sep=";")
+#     with open(path_response / "config-parameters.yml", 'w') as file:  #with zorgt er voor dat file.close niet meer nodig is na with block
+#         yaml.dump(CONFIG["constants"], file)
