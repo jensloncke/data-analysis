@@ -6,14 +6,10 @@ import yaml
 from flex_caffeine_ionomycin.configuration.config import CONFIG
 
 
-def calculate_baseline_and_cutoff(values: pd.Series):
-    minimum = values.min()
-    maximum = values.max()
-    span = maximum - minimum
-    cutoff = minimum + span * CONFIG["constants"]["cut_off_percentage"]
-    mask = (values >= minimum) & (values < cutoff)
-    baseline = np.median(values[mask])
-    return baseline, cutoff
+def calculate_baseline(values: pd.Series, time_values, start_time, end_time):
+    baseline_mask = (time_values >= start_time) & (time_values <= end_time)
+    baseline = np.median(values[baseline_mask])
+    return baseline
 
 
 def return_time_index(timestamp, time_list):
@@ -35,19 +31,24 @@ def calculate_auc(shifted_values, start_time, end_time, time_values):
 
 
 def analyse_column(column_to_analyse: pd.Series, tijd: np.ndarray):
-    baseline, cut_off_value = calculate_baseline_and_cutoff(column_to_analyse)
+    baseline_response = calculate_baseline(column_to_analyse, tijd, CONFIG["constants"]["baseline_response_start_time"],
+    CONFIG["constants"]["baseline_response_end_time"])
+    baseline_ionomycin = calculate_baseline(column_to_analyse, tijd, CONFIG["constants"]["baseline_ionomycin_start_time"],
+    CONFIG["constants"]["baseline_ionomycin_end_time"])
 
-    raw_response = calculate_response(baseline, column_to_analyse, tijd, CONFIG["constants"]["response_start_time"],
+    raw_response = calculate_response(baseline_response, column_to_analyse, tijd, CONFIG["constants"]["response_start_time"],
                                       CONFIG["constants"]["response_end_time"])
-    iono_response = calculate_response(baseline, column_to_analyse, tijd, CONFIG["constants"]["ionomycin_start_time"],
+    iono_response = calculate_response(baseline_ionomycin, column_to_analyse, tijd, CONFIG["constants"]["ionomycin_start_time"],
                                        CONFIG["constants"]["ionomycin_end_time"])
     response = raw_response / iono_response
 
-    shifted_values = column_to_analyse - baseline
-    shifted_values = shifted_values.where(shifted_values > 0, 0)
-    raw_auc = calculate_auc(shifted_values, CONFIG["constants"]["response_start_time"],
+    shifted_values_response = column_to_analyse - baseline_response
+    shifted_values_ionomycin = column_to_analyse - baseline_ionomycin
+    shifted_values_response = shifted_values_response.where(shifted_values_response > 0, 0)
+    shifted_values_ionomycin = shifted_values_ionomycin.where(shifted_values_ionomycin > 0, 0)
+    raw_auc = calculate_auc(shifted_values_response, CONFIG["constants"]["response_start_time"],
                             CONFIG["constants"]["response_end_time"], tijd)
-    iono_auc = calculate_auc(shifted_values, CONFIG["constants"]["ionomycin_start_time"],
+    iono_auc = calculate_auc(shifted_values_ionomycin, CONFIG["constants"]["ionomycin_start_time"],
                              CONFIG["constants"]["ionomycin_end_time"], tijd)
     auc = raw_auc / iono_auc
     return response, auc
@@ -55,7 +56,7 @@ def analyse_column(column_to_analyse: pd.Series, tijd: np.ndarray):
 
 def analyse_data(df: pd.DataFrame):
     df = df.dropna(axis='columns', how="all")
-    tijd = df["A1T"].values
+    tijd = df["A3T"].values
     remove_columns = [column for column in df.columns if ("T" in column)]
     df = df.drop(remove_columns, axis=1)
     df_result = pd.DataFrame(columns=df.columns, index=["response", "auc"])
