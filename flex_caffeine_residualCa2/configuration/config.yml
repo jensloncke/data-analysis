@@ -1,14 +1,13 @@
 paths:
-  data: "C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20200928-Trex293CISD2-Caff-Ionomycin\\20200928-Trex293CISD2-Caff-Ionomycin-1"
-  response: "C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20200928-Trex293CISD2-Caff-Ionomycin\\20200928-Trex293CISD2-Caff-Ionomycin-1\\Response"
+  data: "C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20200930-Trex293CISD2-Caff-Ionomycin\\20200930-2"
+  response: "C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20200930-Trex293CISD2-Caff-Ionomycin\\20200930-2\\Response"
 constants:
   example_bool: False
-  baseline_response_start_time: 160
-  baseline_response_end_time: 320
-  response_start_time: 110
-  response_end_time: 180
-  baseline_ionomycin_start_time: 160
-  baseline_ionomycin_end_time: 320
-  ionomycin_start_time: 350
-  ionomycin_end_time: 410
-  cut_off_percentage: 0.05
+  baseline_response_start_time: 110
+  baseline_response_end_time: 140
+  response_start_time: 140
+  response_end_time: 210
+  baseline_ionomycin_start_time: 200
+  baseline_ionomycin_end_time: 230
+  ionomycin_start_time: 230
+  ionomycin_end_time: 340
