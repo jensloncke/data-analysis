@@ -22,12 +22,13 @@ def plot_data(df, savename, save_path):
                y = "F/F0")
      )
     plot.save(filename = savename, path = save_path)
+    plot.save(filename=savename[0:-4] + ".png", path=save_path)
 
 
 if __name__ == "__main__":
     from pathlib import Path
     import os
-    path_analysis = Path("C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_G-erCEPIA1_confocal\\20201113-TrexERCEPIA")
+    path_analysis = Path("C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_G-erCEPIA1_confocal\\20201211-TrexERCEPIA.mdb")
 
     file_list = [filename for filename in os.listdir(path_analysis)
                  if filename[-4:] == ".csv" and os.path.isfile(path_analysis / filename)]

@@ -22,7 +22,7 @@ def analyse_data(path_read, path_write, filename):
     responses.to_csv(path_write / (filename[:-4] + "_responses.csv"), sep=";")
 
 
-if __name__ == "__main__": #1: define path 2: read in data
+if __name__ == "__main__":
     import os
     path_analysis = CONFIG["path_analysis"]
     path_response = CONFIG["path_response"]
