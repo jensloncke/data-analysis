@@ -3,7 +3,7 @@ import numpy as np
 
 import yaml
 
-from flex_caffeine_residualCa2.configuration.config import CONFIG
+from configuration.config import CONFIG
 
 
 def calculate_baseline(values: pd.Series, time_values, start_time, end_time):
@@ -72,7 +72,7 @@ def analyse_data(df: pd.DataFrame):
 
 if __name__ == "__main__":
     import os
-
+    print(os.environ["PATH"])
     path_analysis = CONFIG["paths"]["data"]
     path_response = CONFIG["paths"]["response"]
 
