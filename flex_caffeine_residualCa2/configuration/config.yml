@@ -1,8 +1,7 @@
 paths:
-  data: "C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20201112-Trex290CISD2-Caff-Ionomycin\\20201112-2"
-  response: "C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20201112-Trex290CISD2-Caff-Ionomycin\\20201112-2\\Response"
+  data: "C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20211108_HeLaCISD2_ATP_DR_1"
+  response: "C:\\Users\\u0132307\\Box Sync\\PhD\\Data\\Ca2+_FURA_flexstation\\20211108_HeLaCISD2_ATP_DR_1\\Response"
 constants:
-  example_bool: False
   baseline_response_start_time: 110
   baseline_response_end_time: 140
   response_start_time: 140

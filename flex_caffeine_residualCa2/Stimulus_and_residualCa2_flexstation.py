@@ -72,7 +72,6 @@ def analyse_data(df: pd.DataFrame):
 
 if __name__ == "__main__":
     import os
-    print(os.environ["PATH"])
     path_analysis = CONFIG["paths"]["data"]
     path_response = CONFIG["paths"]["response"]
 

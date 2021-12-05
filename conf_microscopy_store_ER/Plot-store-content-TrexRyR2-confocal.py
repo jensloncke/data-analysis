@@ -22,7 +22,7 @@ def plot_data(df, savename, save_path):
                y = "F/F0")
      )
     plot.save(filename = savename, path = save_path)
-    plot.save(filename=savename[0:-4] + ".png", path=save_path)
+    plot.save(filename=savename[0:-4] + ".tif", path=save_path)
 
 
 if __name__ == "__main__":
